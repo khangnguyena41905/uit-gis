@@ -1,0 +1,251 @@
+import React, { useState, useEffect } from "react";
+
+// Giả lập dữ liệu phù hợp với IEmployee mới
+const dummyEmployees: IEmployee[] = [
+  {
+    id: 1,
+    code: "E001",
+    name: "Lê Văn Chính",
+    userName: "chinh.lv",
+    email: "chinh.lv@comp.com",
+    phone: "0901112222",
+    department: { id: 1, name: "Sản xuất" },
+    position: { id: 101, name: "Giám sát" },
+    isActive: true, // Đang hoạt động
+  },
+  {
+    id: 2,
+    code: "E002",
+    name: "Nguyễn Thị Hoa",
+    userName: "hoa.nt",
+    email: "hoa.nt@comp.com",
+    phone: "0903334444",
+    department: { id: 2, name: "Hành chính" },
+    position: { id: 102, name: "Nhân viên" },
+    isActive: true,
+  },
+  {
+    id: 3,
+    code: "E003",
+    name: "Trần Minh Hải",
+    userName: "hai.tm",
+    email: "hai.tm@comp.com",
+    phone: "0905556666",
+    department: { id: 3, name: "Kỹ thuật" },
+    position: { id: 103, name: "Kỹ sư" },
+    isActive: false, // Đã khóa
+  },
+];
+
+// 2. IMPORT COMPONENT SHADCN UI
+import { Button } from "~/components/ui/button"; // Giả định
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog"; // Giả định
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table"; // Giả định
+import { Badge } from "~/components/ui/badge"; // Giả định để hiển thị trạng thái
+import type { IEmployee } from "~/lib/types/employees/employee.model";
+
+const EmployeeManagementPage: React.FC = () => {
+  // Cập nhật kiểu dữ liệu state
+  const [employees, setEmployees] = useState<IEmployee[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [currentEmployee, setCurrentEmployee] = useState<IEmployee | null>(
+    null
+  );
+
+  // State cho Phân trang
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10); // 10 mục mỗi trang
+
+  useEffect(() => {
+    setLoading(true);
+    setTimeout(() => {
+      // Giả lập phân trang hoặc chỉ đơn giản là tải dữ liệu
+      setEmployees(dummyEmployees);
+      setLoading(false);
+    }, 500);
+  }, []);
+
+  const handleEdit = (employee: IEmployee) => {
+    setCurrentEmployee(employee);
+    setIsModalOpen(true);
+  };
+
+  const handleAdd = () => {
+    setCurrentEmployee(null);
+    setIsModalOpen(true);
+  };
+
+  // Tính năng Khóa/Mở khóa
+  const handleToggleActive = (employee: IEmployee) => {
+    console.log(
+      `Đang ${employee.isActive ? "Khóa" : "Mở khóa"} tài khoản ID: ${employee.id}`
+    );
+    // Logic gọi API update isActive
+    // Sau khi thành công: setEmployees(updatedList)
+  };
+
+  // Tính năng Reset Password
+  const handleResetPassword = (employee: IEmployee) => {
+    if (
+      window.confirm(
+        `Bạn có chắc chắn muốn RESET MẬT KHẨU cho ${employee.name}?`
+      )
+    ) {
+      console.log(`Đang Reset mật khẩu cho ID: ${employee.id}`);
+      // Logic gọi API Reset Password
+    }
+  };
+
+  // Tính toán dữ liệu hiển thị cho phân trang (Frontend Paging)
+  const totalPages = Math.ceil(employees.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const currentEmployees = employees.slice(startIndex, startIndex + pageSize);
+
+  // --- JSX RENDER ---
+  return (
+    <div className="space-y-6">
+      {/* HEADER & BUTTON ADD */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-gray-800">
+          👤 Quản lý Tài khoản Nhân viên
+        </h1>
+        {/* Sử dụng Button Shadcn */}
+        <Button onClick={handleAdd}>+ Thêm Nhân viên</Button>
+      </div>
+
+      {loading ? (
+        <p>Đang tải danh sách nhân viên...</p>
+      ) : (
+        <div className="bg-white p-6 rounded-lg shadow-xl overflow-x-auto">
+          {/* 3. SỬ DỤNG SHADCN TABLE */}
+          <Table className="min-w-full">
+            <TableHeader className="bg-gray-50">
+              <TableRow>
+                <TableHead className="w-[50px]">ID</TableHead>
+                <TableHead className="w-[80px]">Mã NV</TableHead>
+                <TableHead>Họ và Tên</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Phòng Ban</TableHead>
+                <TableHead>Vị trí</TableHead>
+                <TableHead>Trạng thái</TableHead>
+                <TableHead className="text-right w-[250px]">
+                  Hành động
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {currentEmployees.map((emp) => (
+                <TableRow key={emp.id}>
+                  <TableCell className="font-medium">{emp.id}</TableCell>
+                  <TableCell>{emp.code}</TableCell>
+                  <TableCell>{emp.name}</TableCell>
+                  <TableCell>{emp.email}</TableCell>
+                  <TableCell>{emp.department?.name || "N/A"}</TableCell>
+                  <TableCell>{emp.position?.name || "N/A"}</TableCell>
+                  <TableCell>
+                    {/* Sử dụng Badge Shadcn */}
+                    <Badge variant={emp.isActive ? "default" : "secondary"}>
+                      {emp.isActive ? "Kích hoạt" : "Đã Khóa"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="flex justify-end space-x-2">
+                    {/* Button Sửa */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(emp)}
+                    >
+                      Sửa
+                    </Button>
+                    {/* Button Khóa/Mở khóa */}
+                    <Button
+                      variant={emp.isActive ? "destructive" : "secondary"}
+                      size="sm"
+                      onClick={() => handleToggleActive(emp)}
+                    >
+                      {emp.isActive ? "Khóa TK" : "Mở khóa"}
+                    </Button>
+                    {/* Button Reset Password */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleResetPassword(emp)}
+                    >
+                      Reset PW
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+
+          {/* PHÂN TRANG */}
+          {employees.length > pageSize && (
+            <div className="flex justify-between items-center pt-4">
+              <p className="text-sm text-gray-500">
+                Trang {currentPage} trên {totalPages}
+              </p>
+              <div className="space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                  disabled={currentPage === 1}
+                >
+                  Trang trước
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  disabled={currentPage === totalPages}
+                >
+                  Trang sau
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 4. SHADCN DIALOG (MODAL) CHO THÊM/SỬA */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        {/* DialogTrigger không cần vì đã có button Add/Edit riêng */}
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>
+              {currentEmployee
+                ? `Sửa thông tin: ${currentEmployee.name}`
+                : "Thêm Nhân viên mới"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {/* ⚠️ Form chi tiết cần được tạo tại đây */}
+            <p>... Form chi tiết Thêm/Sửa thông tin nhân viên...</p>
+            {/* Ví dụ: Bạn cần tạo component EmployeeForm.tsx để đặt ở đây */}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default EmployeeManagementPage;

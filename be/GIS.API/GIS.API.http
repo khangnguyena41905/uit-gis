@@ -1,0 +1,6 @@
+@GIS.API_HostAddress = http://localhost:5213
+
+GET {{GIS.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

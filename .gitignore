@@ -1,0 +1,81 @@
+####################################
+# OS / Editor
+####################################
+.DS_Store
+Thumbs.db
+
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+.idea
+*.swp
+
+####################################
+# Environment variables
+####################################
+.env
+.env.*
+!.env.example
+
+####################################
+# Logs
+####################################
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+####################################
+# Frontend (React)
+####################################
+fe/node_modules/
+fe/dist/
+fe/build/
+fe/.vite/
+fe/.cache/
+fe/.turbo/
+
+# React Router v7 (SSR / cache nếu có)
+fe/.react-router/
+
+####################################
+# Backend (.NET)
+####################################
+be/**/bin/
+be/**/obj/
+
+# Rider / VS
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+####################################
+# .NET tooling
+####################################
+.nuget/
+packages/
+project.lock.json
+*.dbmdl
+*.jfm
+
+####################################
+# ASP.NET Core
+####################################
+appsettings.Development.json
+appsettings.Production.json
+
+####################################
+# Test / Coverage
+####################################
+coverage/
+*.coverage
+*.coveragexml
+
+####################################
+# Publish output
+####################################
+publish/
