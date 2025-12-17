@@ -1,8 +1,6 @@
 using Newtonsoft.Json;
 using GIS.API.DependencyInjections.Extensions;
-using GIS.APPLICATION.DependencyInjections.Extensions;
-using GIS.PERSISTENCE.DependencyInjections.Extensions;
-using GIS.PERSISTENCE.DependencyInjections.Options;
+using GIS.API.DependencyInjections.Options;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -51,13 +49,12 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.AddOptionRegister(builder.Configuration);
-builder.Services.AddConffigMediatR();
+builder.Services.AddOptionsRegister(builder.Configuration);
 builder.Services.ConfigureSqlServerRetryOptions(builder.Configuration.GetSection(nameof(SqlServerRetryOptions)));
 builder.Services.AddSqlConfiguration();
 builder.Services.AddRepositoryBaseConfiguration();
 builder.Services.AddJwtAuthenticationServices(builder.Configuration);
-builder.Services.AddApplicationHelper();
+builder.Services.AddApplicationHelpers();
 
 builder.Services.AddCors(options =>
 {
