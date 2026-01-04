@@ -13,6 +13,7 @@ export interface RoutePath {
   isShowInMenu: boolean;
   icon?: LucideIcon;
   children?: RoutePath[];
+  middlewares?: any[];
 }
 
 export const ROUTE_PATHS: RoutePath[] = [
@@ -51,17 +52,24 @@ export const ROUTE_PATHS: RoutePath[] = [
         name: "Quản lý Chấm công",
         path: "/timekeeping",
         fileLocation: "./pages/Timekeeping/TimekeepingManagementPage.tsx",
-        isShowInMenu: false,
+        isShowInMenu: true,
         icon: FingerprintPattern,
-        children: [
-          {
-            id: "timekeeping-detail",
-            name: "Chi tiết Chấm công",
-            path: "/:id",
-            fileLocation: "./pages/Timekeeping/TimekeepingDetailPage.tsx",
-            isShowInMenu: true,
-          },
-        ],
+        // children: [
+        //   {
+        //     id: "timekeeping-detail",
+        //     name: "Chi tiết Chấm công",
+        //     path: ":id",
+        //     fileLocation: "./pages/Timekeeping/TimekeepingDetailPage.tsx",
+        //     isShowInMenu: false,
+        //   },
+        // ],
+      },
+      {
+        id: "timekeeping-detail",
+        name: "Chi tiết Chấm công",
+        path: "/timekeeping/:id",
+        fileLocation: "./pages/Timekeeping/TimekeepingDetailPage.tsx",
+        isShowInMenu: false,
       },
     ],
   },

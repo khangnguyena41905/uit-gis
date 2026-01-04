@@ -40,7 +40,6 @@ export class BaseService {
       });
       return response.data;
     } catch (error) {
-      window.location.href = "/login";
       if (error instanceof AxiosError) {
         this.handleAxiosError(error);
       }
@@ -186,21 +185,12 @@ export class BaseService {
   }
 
   private handleAxiosError(error: AxiosError) {
-    if (!error.response) {
-      // window.location.href = "/error";
-    } else {
-      const { status, data } = error.response;
-
-      if (status === 403 || status === 401) {
-        window.localStorage.removeItem("EBK:Login");
-
-        window.location.href = "/login";
-      } else if (status === 500) {
-        // window.location.href = "/error";
-      } else if (status === 400) {
-        // return data;
-        throw error;
-      }
+    if (
+      error.response &&
+      (error.response.status === 403 || error.response.status === 401)
+    ) {
+      // window.localStorage.removeItem(StorageKey.LOGIN_INFO);
+      // window.location.href = "/login";
     }
   }
 }

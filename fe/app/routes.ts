@@ -5,31 +5,22 @@ import {
 } from "@react-router/dev/routes";
 import { ROUTE_PATHS, type RoutePath } from "./lib/route-path";
 
-// export default [
-//   route("login", "./pages/Auth/LoginPage.tsx"),
-
-//   route("/", "./components/Layout/Layout.tsx", [
-//     route("employee", "./pages/Employee/EmployeeManagementPage.tsx"),
-//     route("assignment", "./pages/Assignment/AssignmentPage.tsx"),
-//     route("timekeeping", "./pages/Timekeeping/TimekeepingManagementPage.tsx", [
-//       route(":id", "./pages/Timekeeping/TimekeepingDetailPage.tsx"),
-//     ]),
-//   ]),
-
-//   route("*", "./pages/NotFoundPage.tsx"),
-// ] satisfies RouteConfig;
-
-const generatedRoutes = (routePaths: RoutePath[]): RouteConfigEntry[] => {
+const generatedRoutes = (
+  routePaths: RoutePath[],
+  parentPath = ""
+): RouteConfigEntry[] => {
   return routePaths.map((routePath) => {
+    const currentPath = `${parentPath}/${routePath.path}`.replace(/\/+/g, "/");
+
     if (routePath.children && routePath.children.length > 0) {
       return route(
-        routePath.path,
+        currentPath,
         routePath.fileLocation,
-        generatedRoutes(routePath.children)
+        generatedRoutes(routePath.children, currentPath)
       );
-    } else {
-      return route(routePath.id, routePath.fileLocation);
     }
+
+    return route(currentPath, routePath.fileLocation);
   });
 };
 

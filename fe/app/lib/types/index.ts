@@ -28,3 +28,9 @@ export interface TimekeepingFilters {
   year: number;
   departmentId?: number;
 }
+
+export interface PolygonFeature {
+  id: number;
+  name?: string;
+  rings: number[][][]; // rings for polygon geometry
+}

@@ -1,24 +1,37 @@
 // pages/Timekeeping/TimekeepingManagementPage.tsx
 
 import React, { useState, useEffect } from "react";
-import type { TimekeepingFilters, TimekeepingSummary } from "~/lib/types";
+import type { TimekeepingFilters } from "~/lib/types";
+import type { IEmployeeMonthlySummary } from "~/lib/interfaces/timekeeping.interface";
+import { unitOfWork } from "~/lib/services/abstractions/unit-of-work";
+import { Button } from "~/components/ui/button";
+import { useNavigate } from "react-router";
 
 // Component giả định cho danh sách (cần tạo)
-const TimekeepingList: React.FC<{ data: TimekeepingSummary[] }> = ({
+const TimekeepingList: React.FC<{ data: IEmployeeMonthlySummary[] }> = ({
   data,
 }) => (
   <div className="bg-white p-6 rounded-lg shadow-xl">
     <h3 className="text-xl font-semibold mb-4">Danh sách Chấm công</h3>
     {/* Bảng hiển thị data. Sử dụng Link/navigate để đi đến trang chi tiết */}
     <table className="min-w-full divide-y divide-gray-200">
-      <thead> {/* ... Table Headings ... */} </thead>
+      <thead>
+        <tr>
+          <th className="text-left p-2">Nhân viên</th>
+          <th className="text-left p-2">Giờ (tháng)</th>
+          <th className="text-left p-2">Số ngày</th>
+          <th className="text-right p-2">Hành động</th>
+        </tr>
+      </thead>
       <tbody>
         {data.map((item) => (
           <tr key={item.employeeId}>
-            <td>{item.name}</td>
-            <td>{item.department}</td>
-            <td>{item.totalHours}</td>
-            {/* Thêm cột Link đến /timekeeping/${item.employeeId} */}
+            <td className="p-2">{item.fullName}</td>
+            <td className="p-2">{item.totalHours}</td>
+            <td className="p-2">{item.daysWorked ?? 0}</td>
+            <td className="p-2 text-right">
+              <ActionButton employeeId={item.employeeId} />
+            </td>
           </tr>
         ))}
       </tbody>
@@ -26,10 +39,19 @@ const TimekeepingList: React.FC<{ data: TimekeepingSummary[] }> = ({
   </div>
 );
 
-const TimekeepingManagementPage: React.FC = () => {
-  const [timekeepingData, setTimekeepingData] = useState<TimekeepingSummary[]>(
-    []
+const ActionButton: React.FC<{ employeeId: string }> = ({ employeeId }) => {
+  const navigate = useNavigate();
+  return (
+    <Button size="sm" onClick={() => navigate(`/timekeeping/${employeeId}`)}>
+      Chi tiết
+    </Button>
   );
+};
+
+const TimekeepingManagementPage: React.FC = () => {
+  const [timekeepingData, setTimekeepingData] = useState<
+    IEmployeeMonthlySummary[]
+  >([]);
 
   const initialFilters: TimekeepingFilters = {
     month: new Date().getMonth() + 1,
@@ -44,30 +66,16 @@ const TimekeepingManagementPage: React.FC = () => {
 
   const fetchTimekeepingData = async (currentFilters: TimekeepingFilters) => {
     setLoading(true);
-    console.log("Fetching data with filters:", currentFilters);
-
-    // Giả lập dữ liệu API
-    const dummyData: TimekeepingSummary[] = [
-      {
-        employeeId: 101,
-        name: "Nguyễn Văn A",
-        department: "Kỹ thuật",
-        totalHours: 160,
-        missedDays: 2,
-      },
-      {
-        employeeId: 102,
-        name: "Trần Thị B",
-        department: "Hành chính",
-        totalHours: 176,
-        missedDays: 0,
-      },
-    ];
-
-    // Thao tác với API ở đây
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    setTimekeepingData(dummyData);
+    try {
+      const data = await unitOfWork.attendanceService.getMonthlySummary(
+        currentFilters.month,
+        currentFilters.year
+      );
+      setTimekeepingData(data ?? []);
+    } catch (err) {
+      console.error("Failed to fetch monthly summary", err);
+      setTimekeepingData([]);
+    }
     setLoading(false);
   };
 
