@@ -2,6 +2,7 @@ import {
   ClipboardList,
   FingerprintPattern,
   Users,
+  CalendarCheck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -53,7 +54,7 @@ export const ROUTE_PATHS: RoutePath[] = [
         path: "/timekeeping",
         fileLocation: "./pages/Timekeeping/TimekeepingManagementPage.tsx",
         isShowInMenu: true,
-        icon: FingerprintPattern,
+        icon: CalendarCheck,
         // children: [
         //   {
         //     id: "timekeeping-detail",
@@ -70,6 +71,14 @@ export const ROUTE_PATHS: RoutePath[] = [
         path: "/timekeeping/:id",
         fileLocation: "./pages/Timekeeping/TimekeepingDetailPage.tsx",
         isShowInMenu: false,
+      },
+      {
+        id: "cham-cong",
+        name: "Chấm công",
+        path: "/cham-cong",
+        fileLocation: "./pages/Attendance/Attendance.tsx",
+        isShowInMenu: true,
+        icon: FingerprintPattern,
       },
     ],
   },

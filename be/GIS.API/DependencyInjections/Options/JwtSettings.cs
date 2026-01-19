@@ -1,9 +1,11 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace GIS.API.DependencyInjections.Options;
 
 public class JwtSettings
 {
-    public string Key { get; set; }
-    public string Issuer { get; set; }
-    public string Audience { get; set; }
+    [Required] public string Key { get; set; } = default!;
+    [Required] public string Issuer { get; set; } = default!;
+    [Required] public string Audience { get; set; } = default!;
     public int ExpireMinutes { get; set; }
 }

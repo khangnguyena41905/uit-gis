@@ -9,12 +9,15 @@ public abstract class ApiBaseController : ControllerBase
 {
     protected readonly IUnitOfWork _unitOfWork;
 
-    protected ApiBaseController(IUnitOfWork unitOfWork)
-    {
-        _unitOfWork = unitOfWork;
-    }
+    protected string? CurrentUserName => User?.Identity?.Name ?? "SYSTEM";
 
     protected ApiBaseController()
     {
+        _unitOfWork = null!;
+    }
+
+    protected ApiBaseController(IUnitOfWork unitOfWork)
+    {
+        _unitOfWork = unitOfWork;
     }
 }

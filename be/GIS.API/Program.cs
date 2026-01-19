@@ -1,7 +1,7 @@
-using Newtonsoft.Json;
 using GIS.API.DependencyInjections.Extensions;
 using GIS.API.DependencyInjections.Options;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,7 +40,7 @@ builder.Services.AddSwaggerGen(c =>
                     Type = ReferenceType.SecurityScheme,
                     Id = "Bearer"
                 },
-                Scheme = "oauth2", 
+                Scheme = "oauth2",
                 Name = "Bearer",
                 In = ParameterLocation.Header
             },
@@ -55,6 +55,8 @@ builder.Services.AddSqlConfiguration();
 builder.Services.AddRepositoryBaseConfiguration();
 builder.Services.AddJwtAuthenticationServices(builder.Configuration);
 builder.Services.AddApplicationHelpers();
+
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddCors(options =>
 {

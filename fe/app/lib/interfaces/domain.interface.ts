@@ -1,3 +1,3 @@
 export interface IDomainInterface<T> {
-  id: T;
+  id?: T;
 }

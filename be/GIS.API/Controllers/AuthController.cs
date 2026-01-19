@@ -13,50 +13,51 @@ namespace GIS.API.Controllers;
 [Route("api/auth")]
 public class AuthController: ApiBaseController
 {
-    private readonly IUserRepository _userRepository;   
+    private readonly INhanVienRepository _nhanVienRepository;   
     private readonly IAuthHelper _authHelper;   
     
     public AuthController(
         IUnitOfWork unitOfWork, 
-        IUserRepository userRepository,
+        INhanVienRepository userRepository,
         IAuthHelper authHelper
     ) : base(unitOfWork)
     {
-        _userRepository = userRepository;
+        _nhanVienRepository = userRepository;
         _authHelper = authHelper;
     }
 
     [HttpPost]
-    public async Task<IActionResult> Login([FromForm] UserLoginModel request)
+    public async Task<IActionResult> Login([FromForm] NhanVienLoginModel request)
     {
-        var user = await _userRepository.FindSingleAsync(u => u.UserName == request.UserName
+        var nhanVien = await _nhanVienRepository.FindSingleAsync(u => u.UserName == request.UserName
         );
 
-        if (user == null)
+        if (nhanVien == null)
         {
             return NotFound();
         }
         
-        if (!user.IsActive)
+        if (!nhanVien.IsActive)
         {
             return BadRequest(new Error("400", "The user is not active"));
         }
         
-        if(!_authHelper.VerifyPassword(request.Password, user.Password))
+        if(!_authHelper.VerifyPassword(request.Password, nhanVien.Password))
         {
             return BadRequest(new Error("400", "Password invalid"));
             
         }
         
-        var (token, experied) = _authHelper.GenerateJwtToken(user.Id,user.UserName);
+        var (token, experied) = _authHelper.GenerateJwtToken(nhanVien.Id, nhanVien.UserName);
         var response = new LoginResponse()
         {
             TokenType= "Bearer",
             Token = token,
-            Email = user.Email,
+            Email = nhanVien.Email,
             ExpiresIn = experied,
-            Name = user.Name,
-            UserName = user.UserName
+            HoTen = nhanVien.HoTen,
+            UserName = nhanVien.UserName,
+            NhanVienId = nhanVien.Id
         };
         return Ok(response);
     }

@@ -19,6 +19,7 @@ import {
 import { Badge } from "~/components/ui/badge"; // Giả định để hiển thị trạng thái
 import type { IEmployee } from "~/lib/interfaces/employee.interface";
 import { unitOfWork } from "~/lib/services/abstractions/unit-of-work";
+import { CreateEmployeeForm } from "~/components/Forms/CreateEmployeeForm";
 
 const EmployeeManagementPage: React.FC = () => {
   // Cập nhật kiểu dữ liệu state
@@ -33,7 +34,6 @@ const EmployeeManagementPage: React.FC = () => {
   const [pageSize] = useState(10); // 10 mục mỗi trang
 
   const fetchEmployees = async () => {
-    debugger;
     const response = await unitOfWork.employeeService.getPagedEmployees({
       pageIndex: currentPage,
       pageSize: pageSize,
@@ -69,7 +69,7 @@ const EmployeeManagementPage: React.FC = () => {
   const handleResetPassword = (employee: IEmployee) => {
     if (
       window.confirm(
-        `Bạn có chắc chắn muốn RESET MẬT KHẨU cho ${employee.fullName}?`
+        `Bạn có chắc chắn muốn RESET MẬT KHẨU cho ${employee.hoTen}?`
       )
     ) {
       console.log(`Đang Reset mật khẩu cho ID: ${employee.id}`);
@@ -113,10 +113,10 @@ const EmployeeManagementPage: React.FC = () => {
             {currentEmployees.map((emp) => (
               <TableRow key={emp.id}>
                 <TableCell className="font-medium">{emp.id}</TableCell>
-                <TableCell>{emp.code}</TableCell>
-                <TableCell>{emp.fullName}</TableCell>
+                <TableCell>{emp.maNV}</TableCell>
+                <TableCell>{emp.hoTen}</TableCell>
                 <TableCell>{emp.email}</TableCell>
-                <TableCell>{emp.department?.name || "N/A"}</TableCell>
+                <TableCell>{emp.department?.tenPB || "N/A"}</TableCell>
                 <TableCell>
                   {/* position not defined on IEmployee */}N/A
                 </TableCell>
@@ -194,14 +194,17 @@ const EmployeeManagementPage: React.FC = () => {
           <DialogHeader>
             <DialogTitle>
               {currentEmployee
-                ? `Sửa thông tin: ${currentEmployee.fullName}`
+                ? `Sửa thông tin: ${currentEmployee.hoTen}`
                 : "Thêm Nhân viên mới"}
             </DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            {/* ⚠️ Form chi tiết cần được tạo tại đây */}
-            <p>... Form chi tiết Thêm/Sửa thông tin nhân viên...</p>
-            {/* Ví dụ: Bạn cần tạo component EmployeeForm.tsx để đặt ở đây */}
+            <CreateEmployeeForm
+              onSubmitSuccess={() => {
+                setIsModalOpen(false);
+                fetchEmployees();
+              }}
+            />
           </div>
         </DialogContent>
       </Dialog>

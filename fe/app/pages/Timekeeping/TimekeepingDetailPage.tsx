@@ -1,27 +1,41 @@
 // pages/Timekeeping/TimekeepingDetailPage.tsx
 
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect, use, useCallback } from "react";
 import { useParams } from "react-router";
 import ArcGISMap from "../../components/Timekeeping/ArcGISMap";
-import type { CheckinLocation, Employee } from "~/lib/types";
+import type { CheckinLocation } from "~/lib/types";
 import { unitOfWork } from "~/lib/services/abstractions/unit-of-work";
 import type { PolygonFeature } from "~/lib/types";
+import { useTimeKeepingStore } from "~/lib/stores/useTimeKeepingStore";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { Calendar } from "~/components/ui/calendar";
+import { Button } from "~/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import type { IEmployee } from "~/lib/interfaces/employee.interface";
+import { isValidCheckin } from "~/lib/utils";
+import { useMetadataStore } from "~/lib/stores/useMetadataStore";
 
 const TimekeepingDetailPage: React.FC = () => {
   // Lấy params (id), đảm bảo hợp lệ
   const { id } = useParams<{ id: string }>();
-  const [employeeDetails, setEmployeeDetails] = useState<Employee | null>(null);
+  const { selectedMonth } = useTimeKeepingStore();
+  const departments = useMetadataStore((state) => state.departments);
+  const [employeeDetails, setEmployeeDetails] = useState<IEmployee | null>(
+    null,
+  );
   const [checkinLocations, setCheckinLocations] = useState<CheckinLocation[]>(
-    []
+    [],
   );
   const [polygons, setPolygons] = useState<PolygonFeature[] | undefined>(
-    undefined
+    undefined,
   );
   const [loading, setLoading] = useState<boolean>(true);
-  const [date, setDate] = useState<string>(() => {
-    const d = new Date();
-    return d.toISOString().slice(0, 10);
-  });
+  const [date, setDate] = useState<Date | undefined>(selectedMonth);
 
   useEffect(() => {
     if (id) {
@@ -36,15 +50,33 @@ const TimekeepingDetailPage: React.FC = () => {
       // Employee details
       if (id) {
         try {
-          const emp = await unitOfWork.employeeService.getById(id);
-          setEmployeeDetails({
-            id: Number(emp.id),
-            name: emp.fullName,
-            department: emp.department?.name ?? "",
-            position: "",
-            totalHours: 0,
-            missedDays: 0,
+          // Subareas / polygons to draw
+          const subareaResp = await unitOfWork.subareaService.getPagedSubareas({
+            pageIndex: 1,
+            pageSize: 1000,
           });
+          const features: PolygonFeature[] = (subareaResp?.items ?? [])
+            .filter(
+              (s) =>
+                s.diem_PhanKhus.flatMap((dpk) => dpk.diem).length > 0 &&
+                s.maPhanKhu !== undefined,
+            )
+            .map((s) => {
+              const points = s.diem_PhanKhus.flatMap((x) => x.diem);
+
+              return {
+                id: s.id as number,
+                name: s.tenPhanKhu,
+                diaDiemIds: points.map((p) => p.id || 0),
+                rings: [
+                  s.diem_PhanKhus.flatMap((x) => x.diem).map((x) => [x.x, x.y]),
+                ],
+              };
+            });
+          setPolygons(features.length > 0 ? features : undefined);
+
+          const emp = await unitOfWork.employeeService.getById(id);
+          setEmployeeDetails(emp);
         } catch (err) {
           // silently continue with null employee
           console.warn("Failed to fetch employee", err);
@@ -52,56 +84,103 @@ const TimekeepingDetailPage: React.FC = () => {
       }
 
       // Attendances for the day
-      const attends = await unitOfWork.attendanceService.getByEmployeeAndDate(
-        id as string,
-        date
+      if (!date) return;
+      const fromDate = new Date(date);
+      fromDate.setHours(0, 0, 0, 0);
+
+      const toDate = new Date(date);
+      toDate.setHours(23, 59, 59, 999);
+      const attends = await unitOfWork.attendanceService.getAttendanceHistory(
+        Number(id),
+        fromDate,
+        toDate,
       );
+      console.log("attends: ", attends);
 
       const checkins: CheckinLocation[] = (attends ?? [])
         .map((a) => {
-          if (!a.point) return null;
+          if (!a.diem) return null;
           return {
             id: a.id,
-            lat: Number(a.point.y),
-            lon: Number(a.point.x),
-            time: a.time,
-            type: a.location ?? "",
+            lat: Number(a.diem.y),
+            lon: Number(a.diem.x),
+            pointId: a.diaDiemId,
+            time: a.gio,
+            // type: a.location ?? "",
           } as CheckinLocation;
         })
         .filter(Boolean) as CheckinLocation[];
 
       setCheckinLocations(checkins);
-
-      // Subareas / polygons to draw
-      const subareaResp = await unitOfWork.subareaService.getPagedSubareas({
-        pageIndex: 1,
-        pageSize: 1000,
-      });
-      const features: PolygonFeature[] = (subareaResp?.items ?? [])
-        .filter((s) => s.polygons && s.polygons.length > 0)
-        .map((s) => ({ id: s.id, name: s.name, rings: s.polygons! }));
-
-      setPolygons(features.length > 0 ? features : undefined);
     } catch (err) {
       console.error("Failed to load timekeeping detail", err);
     }
     setLoading(false);
   };
 
+  const getCheckinPoint = useCallback(() => {
+    return checkinLocations.map((loc) => {
+      const valid = isValidCheckin(loc, employeeDetails, polygons);
+      console.log("loc: ", loc);
+      console.log("employeeDetails: ", employeeDetails);
+      console.log("polygons: ", polygons);
+      console.log("valid: ", valid);
+
+      return {
+        lat: loc.lat,
+        lon: loc.lon,
+        color: valid ? "#2e7d32" : "#c62828",
+        popup: {
+          title: valid ? "Chấm công hợp lệ" : "Ngoài phân ca",
+          content: new Date(loc.time).toLocaleTimeString(),
+        },
+      };
+    });
+  }, [checkinLocations, employeeDetails, polygons]);
+
+  const getArea = useCallback(() => {
+    const firstItem = polygons?.[0];
+    return {
+      ...firstItem,
+      x: firstItem?.rings[0][0][0],
+      y: firstItem?.rings[0][0][1],
+    };
+  }, [polygons]);
+
+  const getDepartmentName = (id: number) => {
+    return departments.filter((d) => d.id == id)[0];
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-gray-800">
-        📍 Chi tiết Chấm công: {employeeDetails?.name || `NV: ${id}`}
+        📍 Chi tiết Chấm công:{" "}
+        {employeeDetails?.hoTen || `NV: ${employeeDetails?.maNV}`}
       </h1>
 
       <div className="bg-white p-4 rounded-lg shadow flex items-center space-x-4">
-        <label className="text-sm">Chọn ngày:</label>
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="border p-2 rounded"
-        />
+        <label className="text-sm font-medium">Chọn ngày:</label>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-[200px] justify-start text-left font-normal"
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {date ? format(date, "dd/MM/yyyy") : "Chọn ngày"}
+            </Button>
+          </PopoverTrigger>
+
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={setDate}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
       {loading ? (
@@ -113,14 +192,19 @@ const TimekeepingDetailPage: React.FC = () => {
               Thông tin Chung
             </h3>
             <p>
-              ID: <strong>{employeeDetails?.id ?? id}</strong>
+              ID: <strong>{employeeDetails?.maNV ?? id}</strong>
             </p>
             <p>
-              Phòng ban: <strong>{employeeDetails?.department}</strong>
+              Phòng ban:
+              <strong>
+                {employeeDetails?.phongBanId
+                  ? getDepartmentName(employeeDetails?.phongBanId)?.tenPB
+                  : ""}
+              </strong>
             </p>
 
             <h3 className="text-xl font-semibold mt-6 mb-4 border-b pb-2">
-              Dữ liệu Chấm công ({date})
+              Dữ liệu Chấm công ({date?.toLocaleDateString()})
             </h3>
             <ul className="list-none space-y-2">
               {checkinLocations.map((loc) => (
@@ -141,7 +225,14 @@ const TimekeepingDetailPage: React.FC = () => {
           </div>
 
           <div className="lg:col-span-2 bg-white rounded-lg shadow p-0 h-[600px]">
-            <ArcGISMap locations={checkinLocations} polygons={polygons} />
+            <ArcGISMap
+              area={{
+                center: [getArea().x ?? 0, getArea().y ?? 0],
+                zoom: 18,
+              }}
+              points={getCheckinPoint()}
+              polygons={polygons}
+            />
           </div>
         </div>
       )}

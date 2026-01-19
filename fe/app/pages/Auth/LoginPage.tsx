@@ -5,12 +5,29 @@ import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { StorageKey } from "~/lib/constants/local-storage";
 import { unitOfWork } from "~/lib/services/abstractions/unit-of-work";
+import { useMetadataStore } from "~/lib/stores/useMetadataStore";
 
 const LoginPage: React.FC = () => {
+  const { setDepartments } = useMetadataStore.getState();
+
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const navigate = useNavigate();
 
+  const fetchMetadata = async (userId: number) => {
+    const { setDepartments, setEmployee } = useMetadataStore.getState();
+
+    const deptRes = await unitOfWork.departmentService.getPagedDepartments({
+      pageIndex: 1,
+      pageSize: 1000,
+    });
+
+    setDepartments(deptRes?.items ?? []);
+
+    const emp = await unitOfWork.employeeService.getById(userId.toString());
+
+    setEmployee(emp);
+  };
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -19,7 +36,7 @@ const LoginPage: React.FC = () => {
 
       if (res) {
         localStorage.setItem(StorageKey.LOGIN_INFO, JSON.stringify(res));
-
+        await fetchMetadata(res.nhanVienId);
         toast.success("Đăng nhập thành công");
 
         navigate("/timekeeping");

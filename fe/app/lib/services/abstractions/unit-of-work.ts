@@ -14,6 +14,10 @@ import {
 import { PointService, type IPointService } from "../point-service";
 import { SubareaService, type ISubareaService } from "../subarea-service";
 import { AreaService, type IAreaService } from "../area-service";
+import {
+  AssignmentService,
+  type IAssignmentService,
+} from "../assignment-service";
 
 interface IUnitOfWork {
   authService: IAuthService;
@@ -26,6 +30,7 @@ interface IUnitOfWork {
   pointService: IPointService;
   subareaService: ISubareaService;
   areaService: IAreaService;
+  assignmentService: IAssignmentService;
 }
 
 class UnitOfWork implements IUnitOfWork {
@@ -86,6 +91,12 @@ class UnitOfWork implements IUnitOfWork {
   private _areaService: IAreaService = new AreaService();
   public get areaService(): IAreaService {
     return (this._areaService = this._areaService ?? new AreaService());
+  }
+
+  private _assignmentService: IAssignmentService = new AssignmentService();
+  public get assignmentService(): IAssignmentService {
+    return (this._assignmentService =
+      this._assignmentService ?? new AssignmentService());
   }
 }
 

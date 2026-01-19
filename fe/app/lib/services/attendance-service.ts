@@ -5,34 +5,33 @@ import type {
 import type { IAttendance } from "../interfaces/attendance.interface";
 import { BaseService } from "./abstractions/base-service";
 import type { IEmployeeMonthlySummary } from "../interfaces/timekeeping.interface";
-import {
-  mockMonthlySummary,
-  mockAttendancesForEmployeeOnDate,
-} from "../mock/mock-data";
-
-const USE_MOCKS =
-  (import.meta.env.VITE_USE_MOCKS ?? "false") === "true" ||
-  import.meta.env.DEV === true;
+import { toLocalISOString } from "../utils";
 
 export interface IAttendanceService {
   getPagedAttendances(
-    request: IPagedRequest
+    request: IPagedRequest,
   ): Promise<IPagedResponse<IAttendance>>;
   getById(id: number): Promise<IAttendance>;
   /**
    * Get monthly summary of total hours for all employees for the given month/year
    */
   getMonthlySummary(
-    month: number,
-    year: number
-  ): Promise<IEmployeeMonthlySummary[]>;
+    request: IPagedRequest & { month: number; year: number },
+  ): Promise<IPagedResponse<IEmployeeMonthlySummary>>;
   /**
    * Get raw attendance records for a given employee on a specific date (ISO yyyy-mm-dd)
    */
-  getByEmployeeAndDate(
-    employeeId: string,
-    date: string
+  getAttendanceHistory(
+    employeeId: number,
+    fromDate: Date,
+    toDate: Date,
   ): Promise<IAttendance[]>;
+
+  checkin(request: {
+    theId: number;
+    diaDiemId: number;
+    gio: string;
+  }): Promise<IAttendance>;
 }
 
 export class AttendanceService
@@ -40,11 +39,22 @@ export class AttendanceService
   implements IAttendanceService
 {
   public constructor() {
-    super("attendances");
+    super("chamcong");
+  }
+  public async checkin(request: {
+    theId: number;
+    diaDiemId: number;
+    gio: string;
+  }): Promise<IAttendance> {
+    const result = await this.POST<IAttendance>({
+      url: "",
+      body: { ...request, isActive: true },
+    });
+    return result;
   }
 
   public async getPagedAttendances(
-    request: IPagedRequest
+    request: IPagedRequest,
   ): Promise<IPagedResponse<IAttendance>> {
     const result = await this.GET<IPagedResponse<IAttendance>>({
       url: "",
@@ -59,36 +69,39 @@ export class AttendanceService
   }
 
   public async getMonthlySummary(
-    month: number,
-    year: number
-  ): Promise<IEmployeeMonthlySummary[]> {
-    if (USE_MOCKS) {
-      return mockMonthlySummary(month, year);
-    }
-
-    // API endpoint expected: /attendances/summary?month=...&year=...
-    const result = await this.GET<IEmployeeMonthlySummary[]>({
-      url: `summary`,
-      params: { month, year },
+    request: IPagedRequest & { month: number; year: number },
+  ): Promise<IPagedResponse<IEmployeeMonthlySummary>> {
+    const result = await this.GET<IPagedResponse<IEmployeeMonthlySummary>>({
+      url: `tong-hop`,
+      params: {
+        month: request.month,
+        year: request.year,
+        pageIndex: request.pageIndex,
+        pageSize: request.pageSize,
+      },
     });
 
     // Defensive: if API not ready, return empty
-    return result ?? [];
+    return result;
   }
 
-  public async getByEmployeeAndDate(
-    employeeId: string,
-    date: string
+  public async getAttendanceHistory(
+    employeeId: number,
+    fromDate: Date,
+    toDate: Date,
   ): Promise<IAttendance[]> {
-    if (USE_MOCKS) {
-      return mockAttendancesForEmployeeOnDate(employeeId, date);
+    try {
+      const result = await this.GET<IAttendance[]>({
+        url: `history`,
+        params: {
+          nhanVienId: employeeId,
+          fromDate: toLocalISOString(fromDate),
+          toDate: toLocalISOString(toDate),
+        },
+      });
+      return result ?? [];
+    } catch (error) {
+      return [];
     }
-
-    // API endpoint expected: /attendances/employee/{id}?date=yyyy-mm-dd
-    const result = await this.GET<IAttendance[]>({
-      url: `employee/${employeeId}`,
-      params: { date },
-    });
-    return result ?? [];
   }
 }

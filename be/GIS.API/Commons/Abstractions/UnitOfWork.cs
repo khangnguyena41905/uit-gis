@@ -3,14 +3,21 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace GIS.API.Abstractions;
 
-public class UnitOfWork: IUnitOfWork
+public class UnitOfWork : IUnitOfWork
 {
     private readonly ApplicationDbContext _context;
     private IDbContextTransaction? _transaction;
+
     public UnitOfWork(ApplicationDbContext context)
     {
         _context = context;
     }
+
+    public bool HasChanges()
+    {
+        return _context.ChangeTracker.HasChanges();
+    }
+
     public async Task BeginTransactionAsync()
     {
         if (_transaction != null)
@@ -26,7 +33,7 @@ public class UnitOfWork: IUnitOfWork
 
         await _context.SaveChangesAsync();
     }
-    
+
     public async Task CommitAsync()
     {
         if (_transaction == null)
@@ -48,7 +55,6 @@ public class UnitOfWork: IUnitOfWork
             throw;
         }
     }
-
 
     public async Task RollbackAsync()
     {

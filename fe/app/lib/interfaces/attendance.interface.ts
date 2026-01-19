@@ -3,10 +3,10 @@ import type { ICard } from "./card.interface";
 import type { IPoint } from "./point.interface";
 
 export interface IAttendance extends IDomainInterface<number> {
-  cardId: string;
-  pointId: number;
-  location?: string; // textual description of location
-  time: string; // ISO datetime
-  readonly card?: ICard;
-  readonly point?: IPoint;
+  theId: string;
+  diaDiemId: number;
+  // location?: string; // textual description of location
+  gio: string; // ISO datetime
+  readonly the?: ICard;
+  readonly diem?: IPoint;
 }

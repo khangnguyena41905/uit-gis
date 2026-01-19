@@ -1,13 +1,12 @@
-import type { IPosition } from "./department.interface";
 import type { IDomainInterface } from "./domain.interface";
 
 export interface IUser extends IDomainInterface<number> {
-  name: string;
-  code?: string;
+  hoTen: string;
+  maNV?: string;
   email: string;
   userName: string;
+  ngaySinh: string;
   phone: string;
-  positionId: string;
-  readonly position?: Pick<IPosition, "id" | "name" | "department">;
+  phongBanId: number;
   isActive: boolean;
 }

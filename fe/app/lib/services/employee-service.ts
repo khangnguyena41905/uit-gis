@@ -8,27 +8,34 @@ import { BaseService } from "./abstractions/base-service";
 export interface IEmployeeService {
   getPagedEmployees(request: IPagedRequest): Promise<IPagedResponse<IEmployee>>;
   getById(id: string): Promise<IEmployee>;
+  create(user: IEmployee): Promise<IEmployee>;
 }
 
 export class EmployeeService extends BaseService implements IEmployeeService {
   public constructor() {
-    super("users");
+    super("nhanvien");
   }
 
   public async getPagedEmployees(
     request: IPagedRequest
   ): Promise<IPagedResponse<IEmployee>> {
-    debugger;
     const result = await this.GET<IPagedResponse<IEmployee>>({
       url: "",
       params: request,
     });
-    debugger;
     return result;
   }
 
   public async getById(id: string): Promise<IEmployee> {
     const result = await this.GET<IEmployee>({ url: `${id}` });
+    return result;
+  }
+
+  public async create(user: IEmployee): Promise<IEmployee> {
+    const result = await this.POST<IEmployee>({
+      url: "",
+      body: user,
+    });
     return result;
   }
 }

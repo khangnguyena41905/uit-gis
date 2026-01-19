@@ -5,4 +5,5 @@ export interface ILoginData {
   name: string;
   userName: string;
   email: string;
+  nhanVienId: number;
 }

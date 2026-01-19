@@ -1,17 +1,27 @@
-using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace GIS.API.Abstractions;
+
 public interface IRepositoryBase<TEntity, in TKey> where TEntity : class
 {
     Task<TEntity?> FindByIdAsync(TKey id, params Expression<Func<TEntity, object>>[] includeProperties);
+
     Task<TEntity?> FindSingleAsync(Expression<Func<TEntity, bool>> predicate, params Expression<Func<TEntity, object>>[] includeProperties);
+
     Task<IEnumerable<TEntity>> FindAllAsync(Expression<Func<TEntity, bool>>? predicate = null, params Expression<Func<TEntity, object>>[] includeProperties);
+
     Task<PagedResult<TEntity>> FindAllPagedAsync(int pageIndex, int pageSize, Expression<Func<TEntity, bool>>? predicate = null, params Expression<Func<TEntity, object>>[] includeProperties);
+    Task<PagedResult<TEntity>> FindAllPagedAsync(int pageIndex, int pageSize, Expression<Func<TEntity, bool>>? predicate = null,  Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null);
     
+    IQueryable<TEntity> Query();
+
     Task<TEntity> AddAsync(TEntity entity);
+
     Task<TEntity> UpdateAsync(TEntity entity);
+
     Task RemoveAsync(TEntity entity);
+
     Task RemoveMultipleAsync(List<TEntity> entities);
 }
 
@@ -67,7 +77,41 @@ public class RepositoryBase<TEntity, TKey> : IRepositoryBase<TEntity, TKey>, IDi
 
         return PagedResult<TEntity>.Create(items, totalCount, pageIndex, pageSize);
     }
+
+    public async Task<PagedResult<TEntity>> FindAllPagedAsync(
+        int pageIndex,
+        int pageSize,
+        Expression<Func<TEntity, bool>>? predicate = null,
+        Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null)
+    {
+        IQueryable<TEntity> query = _context.Set<TEntity>();
+
+        // Apply predicate (WHERE)
+        if (predicate != null)
+        {
+            query = query.Where(predicate);
+        }
+
+        // Apply include (Include / ThenInclude / Filtered Include)
+        if (include != null)
+        {
+            query = include(query);
+        }
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return PagedResult<TEntity>.Create(items, totalCount, pageIndex, pageSize);
+    }
+
     
+    public IQueryable<TEntity> Query()
+        => _context.Set<TEntity>();
+
     public async Task<TEntity> AddAsync(TEntity entity)
     {
         var entry = await _context.Set<TEntity>().AddAsync(entity);
@@ -91,7 +135,6 @@ public class RepositoryBase<TEntity, TKey> : IRepositoryBase<TEntity, TKey>, IDi
         _context.Set<TEntity>().RemoveRange(entities);
         return Task.CompletedTask;
     }
-
 
     private IQueryable<TEntity> ApplyIncludes(IQueryable<TEntity> query, params Expression<Func<TEntity, object>>[] includeProperties)
     {

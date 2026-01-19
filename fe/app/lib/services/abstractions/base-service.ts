@@ -184,13 +184,55 @@ export class BaseService {
     }
   }
 
+  protected async PUT<T>(options: IOptions): Promise<T> {
+    try {
+      const response: AxiosResponse<T> = await this.axiosClient.request<T>({
+        method: "PUT",
+        url: options.url,
+        params: options.params,
+        data: JSON.stringify(options.body),
+        headers: {
+          Authorization: this.tokenKey,
+          "Content-Type": "application/json; charset=utf-8",
+        },
+      });
+      return response.data;
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        this.handleAxiosError(error);
+      }
+      throw error;
+    }
+  }
+
+  protected async DELETE<T>(options: IOptions): Promise<T> {
+    try {
+      const response: AxiosResponse<T> = await this.axiosClient.request<T>({
+        method: "DELETE",
+        url: options.url,
+        params: options.params,
+        data: JSON.stringify(options.body),
+        headers: {
+          Authorization: this.tokenKey,
+          "Content-Type": "application/json; charset=utf-8",
+        },
+      });
+      return response.data;
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        this.handleAxiosError(error);
+      }
+      throw error;
+    }
+  }
+
   private handleAxiosError(error: AxiosError) {
     if (
       error.response &&
       (error.response.status === 403 || error.response.status === 401)
     ) {
-      // window.localStorage.removeItem(StorageKey.LOGIN_INFO);
-      // window.location.href = "/login";
+      window.localStorage.removeItem(StorageKey.LOGIN_INFO);
+      window.location.href = "/login";
     }
   }
 }

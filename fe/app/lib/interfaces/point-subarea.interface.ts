@@ -1,4 +1,8 @@
+import type { IPoint } from "./point.interface";
+
 export interface IPointSubarea {
-  pointId: number;
-  subareaId: number;
+  diaDiemId: number;
+  phanKhuId: number;
+  isActive: boolean;
+  diem: IPoint;
 }

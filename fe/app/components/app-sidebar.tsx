@@ -14,13 +14,14 @@ import {
   SidebarRail,
 } from "~/components/ui/sidebar";
 import { ROUTE_PATHS, type RoutePath } from "~/lib/route-path";
+import { useMetadataStore } from "~/lib/stores/useMetadataStore";
 const generateNavMainFromRoutes = (routePaths: RoutePath[]) => {
   return routePaths
     .filter((route) => route.id === "layout")[0]
     .children!.filter(
       (route) =>
         route.isShowInMenu ||
-        route.children?.some((child) => child.isShowInMenu)
+        route.children?.some((child) => child.isShowInMenu),
     )
     .map((route) => {
       return {
@@ -43,11 +44,6 @@ const generateNavMainFromRoutes = (routePaths: RoutePath[]) => {
 };
 // This is sample data.
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   teams: [
     {
       name: "Acme Inc",
@@ -69,6 +65,8 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const employee = useMetadataStore((s) => s.employee);
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -78,7 +76,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser
+          user={{
+            name: employee?.hoTen ?? "Unknown User",
+            email: employee?.email ?? "",
+            avatar: "/avatar-default.png",
+          }}
+        />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

@@ -17,7 +17,7 @@ export class DepartmentService
   implements IDepartmentService
 {
   public constructor() {
-    super("departments");
+    super("phongban");
   }
 
   public async getPagedDepartments(

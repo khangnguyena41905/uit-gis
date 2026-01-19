@@ -1,11 +1,10 @@
 import type { IDomainInterface } from "./domain.interface";
+import type { IPointSubarea } from "./point-subarea.interface";
 
 export interface ISubarea extends IDomainInterface<number> {
-  name: string;
-  areaId: number;
-  /**
-   * polygons described as an array of rings
-   * ring = array of points, point = [x, y]
-   */
-  polygons?: number[][][];
+  maPhanKhu: string;
+  tenPhanKhu: string;
+  khuVucId: number;
+  isActive: boolean;
+  diem_PhanKhus: IPointSubarea[];
 }
