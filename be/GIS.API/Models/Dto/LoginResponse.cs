@@ -9,5 +9,7 @@ public class LoginResponse
     public string UserName { get; set; } = String.Empty;
     public string Email { get; set; } = String.Empty;
     public int NhanVienId { get; set; }
+    public int RoleId { get; set; }
+    public string RoleCode { get; set; }
     
 }

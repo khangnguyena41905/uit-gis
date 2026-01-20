@@ -36,10 +36,11 @@ const LoginPage: React.FC = () => {
 
       if (res) {
         localStorage.setItem(StorageKey.LOGIN_INFO, JSON.stringify(res));
+        localStorage.setItem(StorageKey.ROLE, res.roleCode);
         await fetchMetadata(res.nhanVienId);
         toast.success("Đăng nhập thành công");
 
-        navigate("/timekeeping");
+        navigate("/cham-cong");
       } else {
         toast.error("Sai tên đăng nhập hoặc mật khẩu");
       }

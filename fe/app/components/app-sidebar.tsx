@@ -1,7 +1,5 @@
-"use client";
-
 import * as React from "react";
-import { AudioWaveform, Command, GalleryVerticalEnd } from "lucide-react";
+import { GalleryVerticalEnd } from "lucide-react";
 
 import { NavMain } from "~/components/nav-main";
 import { NavUser } from "~/components/nav-user";
@@ -13,68 +11,72 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "~/components/ui/sidebar";
+
 import { ROUTE_PATHS, type RoutePath } from "~/lib/route-path";
 import { useMetadataStore } from "~/lib/stores/useMetadataStore";
-const generateNavMainFromRoutes = (routePaths: RoutePath[]) => {
-  return routePaths
-    .filter((route) => route.id === "layout")[0]
-    .children!.filter(
-      (route) =>
-        route.isShowInMenu ||
-        route.children?.some((child) => child.isShowInMenu),
-    )
-    .map((route) => {
-      return {
-        title: route.name,
-        url: route.path,
-        isActive: false,
-        icon: route.icon,
-        items: !route.children
-          ? undefined
-          : route.children
-              .filter((childRoute) => childRoute.isShowInMenu)
-              .map((childRoute) => {
-                return {
-                  title: childRoute.name,
-                  url: childRoute.path,
-                };
-              }),
-      };
-    });
-};
-// This is sample data.
-const data = {
-  teams: [
-    {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
-  ],
-  navMain: [...generateNavMainFromRoutes(ROUTE_PATHS)],
+import { StorageKey } from "~/lib/constants/local-storage";
+
+/* ================================
+   Helpers
+================================ */
+
+const generateNavMainFromRoutes = (
+  routePaths: RoutePath[],
+  role: string | null,
+) => {
+  const layout = routePaths.find((r) => r.id === "layout");
+  if (!layout?.children) return [];
+
+  return layout.children
+    .filter((route) => {
+      if (!route.isShowInMenu) return false;
+
+      if (role !== "admin" && route.path.startsWith("/admin")) {
+        return false;
+      }
+
+      return true;
+    })
+    .map((route) => ({
+      title: route.name,
+      url: route.path,
+      isActive: false,
+      icon: route.icon,
+    }));
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const employee = useMetadataStore((s) => s.employee);
 
+  const [navMain, setNavMain] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    const role = localStorage.getItem(StorageKey.ROLE);
+    const menu = generateNavMainFromRoutes(
+      ROUTE_PATHS,
+      role?.toLowerCase() ?? "",
+    );
+    setNavMain(menu);
+  }, []);
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher
+          teams={[
+            {
+              name: "UIT GIS",
+              logo: GalleryVerticalEnd,
+              plan: "Enterprise",
+            },
+          ]}
+        />
       </SidebarHeader>
+
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={navMain} />
       </SidebarContent>
+
       <SidebarFooter>
         <NavUser
           user={{
@@ -84,6 +86,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           }}
         />
       </SidebarFooter>
+
       <SidebarRail />
     </Sidebar>
   );

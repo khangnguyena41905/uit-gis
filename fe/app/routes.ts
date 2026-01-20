@@ -7,7 +7,7 @@ import { ROUTE_PATHS, type RoutePath } from "./lib/route-path";
 
 const generatedRoutes = (
   routePaths: RoutePath[],
-  parentPath = ""
+  parentPath = "",
 ): RouteConfigEntry[] => {
   return routePaths.map((routePath) => {
     const currentPath = `${parentPath}/${routePath.path}`.replace(/\/+/g, "/");
@@ -16,7 +16,7 @@ const generatedRoutes = (
       return route(
         currentPath,
         routePath.fileLocation,
-        generatedRoutes(routePath.children, currentPath)
+        generatedRoutes(routePath.children, currentPath),
       );
     }
 

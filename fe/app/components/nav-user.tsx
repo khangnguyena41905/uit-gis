@@ -39,6 +39,8 @@ export function NavUser({
   const { isMobile } = useSidebar();
   const logout = () => {
     localStorage.removeItem(StorageKey.LOGIN_INFO);
+    localStorage.removeItem(StorageKey.ROLE);
+
     window.location.href = "/login";
   };
   return (

@@ -13,7 +13,7 @@ export class BaseService {
       return "";
     }
     const loginInfo = JSON.parse(
-      localStorage[StorageKey.LOGIN_INFO]
+      localStorage[StorageKey.LOGIN_INFO],
     ) as ILoginData;
     return `${loginInfo.tokenType} ${loginInfo.token}`;
   }
@@ -116,7 +116,7 @@ export class BaseService {
 
   protected async POST_FORMDATA<T>(
     options: IOptions,
-    onUploadProgress?: any
+    onUploadProgress?: any,
   ): Promise<T> {
     try {
       const response: AxiosResponse<T> = await this.axiosClient.request<T>({
@@ -232,6 +232,7 @@ export class BaseService {
       (error.response.status === 403 || error.response.status === 401)
     ) {
       window.localStorage.removeItem(StorageKey.LOGIN_INFO);
+      window.localStorage.removeItem(StorageKey.ROLE);
       window.location.href = "/login";
     }
   }

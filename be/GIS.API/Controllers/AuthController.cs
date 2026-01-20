@@ -29,7 +29,9 @@ public class AuthController: ApiBaseController
     [HttpPost]
     public async Task<IActionResult> Login([FromForm] NhanVienLoginModel request)
     {
-        var nhanVien = await _nhanVienRepository.FindSingleAsync(u => u.UserName == request.UserName
+        var nhanVien = await _nhanVienRepository.FindSingleAsync(
+            u => u.UserName == request.UserName,
+            includeProperties: x => x.Role
         );
 
         if (nhanVien == null)
@@ -57,7 +59,9 @@ public class AuthController: ApiBaseController
             ExpiresIn = experied,
             HoTen = nhanVien.HoTen,
             UserName = nhanVien.UserName,
-            NhanVienId = nhanVien.Id
+            NhanVienId = nhanVien.Id,
+            RoleId = nhanVien.Role.Id,
+            RoleCode = nhanVien.Role.RoleCode
         };
         return Ok(response);
     }

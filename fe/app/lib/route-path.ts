@@ -36,7 +36,7 @@ export const ROUTE_PATHS: RoutePath[] = [
       {
         id: "employee",
         name: "Quản lý nhân sự",
-        path: "/employee",
+        path: "/admin/employee",
         fileLocation: "./pages/Employee/EmployeeManagementPage.tsx",
         isShowInMenu: true,
         icon: Users,
@@ -44,7 +44,7 @@ export const ROUTE_PATHS: RoutePath[] = [
       {
         id: "assignment",
         name: "Phân ca",
-        path: "/assignment",
+        path: "/admin/assignment",
         fileLocation: "./pages/Assignment/AssignmentPage.tsx",
         isShowInMenu: true,
         icon: ClipboardList,
@@ -52,24 +52,15 @@ export const ROUTE_PATHS: RoutePath[] = [
       {
         id: "timekeeping",
         name: "Quản lý Chấm công",
-        path: "/timekeeping",
+        path: "/admin/timekeeping",
         fileLocation: "./pages/Timekeeping/TimekeepingManagementPage.tsx",
         isShowInMenu: true,
         icon: CalendarCheck,
-        // children: [
-        //   {
-        //     id: "timekeeping-detail",
-        //     name: "Chi tiết Chấm công",
-        //     path: ":id",
-        //     fileLocation: "./pages/Timekeeping/TimekeepingDetailPage.tsx",
-        //     isShowInMenu: false,
-        //   },
-        // ],
       },
       {
         id: "timekeeping-detail",
         name: "Chi tiết Chấm công",
-        path: "/timekeeping/:id",
+        path: "/admin/timekeeping/:id",
         fileLocation: "./pages/Timekeeping/TimekeepingDetailPage.tsx",
         isShowInMenu: false,
       },
@@ -84,14 +75,13 @@ export const ROUTE_PATHS: RoutePath[] = [
       {
         id: "the-tu",
         name: "Quản lý thẻ",
-        path: "/the-tu",
+        path: "/admin/the-tu",
         fileLocation: "./pages/CardManagement/CardManagement.tsx",
         isShowInMenu: true,
         icon: IdCardLanyard,
       },
     ],
   },
-
   {
     id: "not-found",
     name: "404 Not Found",
