@@ -47,11 +47,12 @@ const ArcGISMap: React.FC<ArcGISMapProps> = ({
   const mapDiv = useRef<HTMLDivElement>(null);
   const viewRef = useRef<__esri.MapView | null>(null);
   const layerRef = useRef<__esri.GraphicsLayer | null>(null);
-  const selectedPolygonRef = useRef<__esri.Graphic | null>(null);
+  const highlightRef = useRef<__esri.Handle | null>(null);
 
   /* ================= INIT MAP ================= */
   useEffect(() => {
     let mounted = true;
+    let clickHandle: __esri.Handle | null = null;
 
     const init = async () => {
       if (!mapDiv.current || viewRef.current) return;
@@ -80,12 +81,50 @@ const ArcGISMap: React.FC<ArcGISMapProps> = ({
       layerRef.current = layer;
 
       await view.when();
+      const layerView = await view.whenLayerView(layer);
+
+      clickHandle = view.on("click", async (event) => {
+        const hit = await view.hitTest(event);
+
+        const result = hit.results.find(
+          (r): r is __esri.MapViewGraphicHit =>
+            "graphic" in r &&
+            r.graphic.layer === layer &&
+            r.graphic.geometry?.type === "polygon",
+        );
+
+        if (!result) return;
+
+        const graphic = result.graphic;
+        const polygon = graphic.geometry as __esri.Polygon;
+
+        /* clear old highlight */
+        highlightRef.current?.remove();
+
+        /* highlight immediately */
+        highlightRef.current = layerView.highlight(graphic);
+
+        view.goTo(polygon.extent?.expand(1.5), { duration: 600 });
+
+        const ring = polygon.rings[0];
+
+        onPolygonClick?.({
+          polygonId: graphic.attributes.id,
+          firstPointId: graphic.attributes.firstPointId ?? 0,
+          firstPoint: [ring[0][0], ring[0][1]],
+          points: ring.map((p) => [p[0], p[1]]),
+        });
+      });
+
       drawAll();
     };
 
     init();
+
     return () => {
       mounted = false;
+      clickHandle?.remove();
+      highlightRef.current?.remove();
       viewRef.current?.destroy();
       viewRef.current = null;
       layerRef.current = null;
@@ -161,61 +200,6 @@ const ArcGISMap: React.FC<ArcGISMapProps> = ({
     });
   };
 
-  /* ================= CLICK POLYGON ================= */
-  useEffect(() => {
-    const view = viewRef.current;
-    const layer = layerRef.current;
-    if (!view || !layer || !onPolygonClick) return;
-
-    const handler = view.on("click", async (event) => {
-      const hit = await view.hitTest(event);
-
-      const result = hit.results.find(
-        (r): r is __esri.MapViewGraphicHit =>
-          "graphic" in r &&
-          r.graphic.layer === layer &&
-          r.graphic.geometry?.type === "polygon",
-      );
-
-      if (!result) return;
-
-      const graphic = result.graphic;
-      const polygon = graphic.geometry as __esri.Polygon;
-
-      /* -------- Reset highlight cũ -------- */
-      if (selectedPolygonRef.current) {
-        selectedPolygonRef.current.symbol = {
-          type: "simple-fill",
-          color: [66, 199, 190, 0.35],
-          outline: { color: "#ffffff", width: 1 },
-        };
-      }
-
-      /* -------- Highlight mới -------- */
-      graphic.symbol = {
-        type: "simple-fill",
-        color: [255, 193, 7, 0.45],
-        outline: { color: "#f59e0b", width: 2 },
-      };
-
-      selectedPolygonRef.current = graphic;
-
-      /* -------- Focus polygon -------- */
-      view.goTo(polygon?.extent?.expand(1.5), { duration: 600 });
-
-      const ring = polygon.rings[0];
-
-      onPolygonClick({
-        polygonId: graphic.attributes.id,
-        firstPointId: graphic.attributes.firstPointId || 0,
-        firstPoint: [ring[0][0], ring[0][1]],
-        points: ring.map((p) => [p[0], p[1]]),
-      });
-    });
-
-    return () => handler.remove();
-  }, [onPolygonClick]);
-
   /* ================= UPDATE ================= */
   useEffect(() => {
     drawAll();
@@ -224,6 +208,7 @@ const ArcGISMap: React.FC<ArcGISMapProps> = ({
   return (
     <div
       ref={mapDiv}
+      tabIndex={0}
       className="w-full h-full rounded-lg border overflow-hidden"
     />
   );

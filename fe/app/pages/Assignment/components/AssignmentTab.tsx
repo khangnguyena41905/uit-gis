@@ -43,6 +43,8 @@ const AssignmentTab: React.FC = () => {
   const [employees, setEmployees] = useState<IEmployee[]>([]);
   const [subarea, setSubarea] = useState<ISubarea[]>([]);
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false);
+  const [selectedPointId, setSelectedPointId] = useState<number | undefined>();
+
   const [editingAssignment, setEditingAssignment] =
     useState<IAssignment | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -196,11 +198,15 @@ const AssignmentTab: React.FC = () => {
                   zoom: 18,
                 }}
                 polygons={getMappedSubarea()}
+                onPolygonClick={(polygon) => {
+                  setSelectedPointId(polygon.firstPointId);
+                }}
               />
             </div>
             <div className="w-[300px]">
               <AssignmentForm
                 assignment={editingAssignment}
+                selectedPointId={selectedPointId ?? 0}
                 shifts={shifts}
                 employees={employees}
                 points={points}

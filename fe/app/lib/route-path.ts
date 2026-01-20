@@ -3,6 +3,7 @@ import {
   FingerprintPattern,
   Users,
   CalendarCheck,
+  IdCardLanyard,
   type LucideIcon,
 } from "lucide-react";
 
@@ -79,6 +80,14 @@ export const ROUTE_PATHS: RoutePath[] = [
         fileLocation: "./pages/Attendance/Attendance.tsx",
         isShowInMenu: true,
         icon: FingerprintPattern,
+      },
+      {
+        id: "the-tu",
+        name: "Quản lý thẻ",
+        path: "/the-tu",
+        fileLocation: "./pages/CardManagement/CardManagement.tsx",
+        isShowInMenu: true,
+        icon: IdCardLanyard,
       },
     ],
   },

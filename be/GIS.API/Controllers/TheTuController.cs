@@ -31,8 +31,9 @@ public class TheTuController : ApiBaseController
             pageSize: requestModel.PageSize,
             predicate: _ => String.IsNullOrEmpty(requestModel.SearchStr)
                             || _.MaThe == requestModel.SearchStr
-                            || _.NhanVienId == int.Parse(requestModel.SearchStr)
-
+                            || _.NhanVienId == int.Parse(requestModel.SearchStr),
+            includeProperties: x => x.NhanVien
+    
         );
         return Ok(theTus);
     }

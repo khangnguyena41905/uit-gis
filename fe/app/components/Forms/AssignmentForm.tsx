@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import type { IEmployee } from "~/lib/interfaces/employee.interface";
 import type { IPoint } from "~/lib/interfaces/point.interface";
 import type { IAssignment, IShift } from "~/lib/interfaces/shift.interface";
@@ -37,6 +37,7 @@ import { DialogFooter } from "@/components/ui/dialog";
 
 export interface AssignmentFormProps {
   assignment: IAssignment | null;
+  selectedPointId: number;
   shifts: IShift[];
   employees: IEmployee[];
   points: IPoint[];
@@ -45,6 +46,7 @@ export interface AssignmentFormProps {
 
 export const AssignmentForm: React.FC<AssignmentFormProps> = ({
   assignment,
+  selectedPointId,
   shifts,
   employees,
   points,
@@ -69,7 +71,14 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
       ngayKT: values.ngayKT ? format(values.ngayKT, "yyyy-MM-dd") : null,
     });
   };
-
+  useEffect(() => {
+    if (selectedPointId) {
+      form.setValue("diaDiemId", selectedPointId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    }
+  }, [selectedPointId, form]);
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
@@ -139,8 +148,9 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
             <FormItem>
               <FormLabel>Địa điểm</FormLabel>
               <Select
+                disabled
                 value={field.value?.toString()}
-                onValueChange={(v) => field.onChange(Number(v))}
+                // onValueChange={(v) => field.onChange(Number(v))}
               >
                 <FormControl>
                   <SelectTrigger className="w-full">
@@ -205,7 +215,7 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
                   value={field.value ? format(field.value, "yyyy-MM-dd") : ""}
                   onChange={(e) =>
                     field.onChange(
-                      e.target.value ? new Date(e.target.value) : undefined
+                      e.target.value ? new Date(e.target.value) : undefined,
                     )
                   }
                 />

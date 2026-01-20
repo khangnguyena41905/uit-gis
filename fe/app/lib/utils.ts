@@ -78,3 +78,6 @@ export const getInitials = (fullName?: string, max = 2) => {
 
   return (first + last).toUpperCase().slice(0, max);
 };
+export const generateCardCode = () => {
+  return `CARD-${Date.now().toString().slice(-6)}`;
+};

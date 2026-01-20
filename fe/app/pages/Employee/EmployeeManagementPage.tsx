@@ -20,26 +20,29 @@ import { Badge } from "~/components/ui/badge"; // Giả định để hiển th�
 import type { IEmployee } from "~/lib/interfaces/employee.interface";
 import { unitOfWork } from "~/lib/services/abstractions/unit-of-work";
 import { CreateEmployeeForm } from "~/components/Forms/CreateEmployeeForm";
+import { useLoadingStore } from "~/lib/stores/useLoadingStore";
 
 const EmployeeManagementPage: React.FC = () => {
   // Cập nhật kiểu dữ liệu state
+  const { show, hide } = useLoadingStore();
   const [employees, setEmployees] = useState<IEmployee[]>([]);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [currentEmployee, setCurrentEmployee] = useState<IEmployee | null>(
-    null
+    null,
   );
 
   // State cho Phân trang
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10); // 10 mục mỗi trang
+  const [pageSize] = useState(100);
 
   const fetchEmployees = async () => {
+    show();
     const response = await unitOfWork.employeeService.getPagedEmployees({
       pageIndex: currentPage,
       pageSize: pageSize,
     });
-    // Nếu API chưa có, response.items có thể là undefined => defensive fallback
     setEmployees(response?.items ?? []);
+    hide();
   };
 
   useEffect(() => {
@@ -59,7 +62,7 @@ const EmployeeManagementPage: React.FC = () => {
   // Tính năng Khóa/Mở khóa
   const handleToggleActive = (employee: IEmployee) => {
     console.log(
-      `Đang ${employee.isActive ? "Khóa" : "Mở khóa"} tài khoản ID: ${employee.id}`
+      `Đang ${employee.isActive ? "Khóa" : "Mở khóa"} tài khoản ID: ${employee.id}`,
     );
     // Logic gọi API update isActive (sử dụng unitOfWork.employeeService)
     // Sau khi thành công: fetchEmployees();
@@ -69,7 +72,7 @@ const EmployeeManagementPage: React.FC = () => {
   const handleResetPassword = (employee: IEmployee) => {
     if (
       window.confirm(
-        `Bạn có chắc chắn muốn RESET MẬT KHẨU cho ${employee.hoTen}?`
+        `Bạn có chắc chắn muốn RESET MẬT KHẨU cho ${employee.hoTen}?`,
       )
     ) {
       console.log(`Đang Reset mật khẩu cho ID: ${employee.id}`);

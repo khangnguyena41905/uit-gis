@@ -31,10 +31,7 @@ const Attendance: React.FC = () => {
 
   const [selectedCardId, setSelectedCardId] = useState<number>();
   const [dateTime, setDateTime] = useState<string>("");
-  const [selectedLocation, setSelectedLocation] = useState<{
-    diaDiemId: number;
-    polygonId: number;
-  }>();
+  const [selectedLocation, setSelectedLocation] = useState<number>(0);
 
   const [loading, setLoading] = useState(false);
 
@@ -87,7 +84,7 @@ const Attendance: React.FC = () => {
     try {
       await unitOfWork.attendanceService.checkin({
         theId: selectedCardId,
-        diaDiemId: selectedLocation?.diaDiemId ?? 1,
+        diaDiemId: selectedLocation ?? 1,
         gio: formatISO(new Date(dateTime)),
       });
 
@@ -137,15 +134,11 @@ const Attendance: React.FC = () => {
         <div className="flex-1 h-[600px]">
           <ArcGISMap
             area={{
-              center: undefined,
               zoom: 18,
             }}
             polygons={getMappedSubarea()}
             onPolygonClick={(polygon) => {
-              setSelectedLocation({
-                polygonId: polygon.polygonId,
-                diaDiemId: polygon.firstPointId,
-              });
+              setSelectedLocation(polygon.firstPointId);
             }}
           />
         </div>
@@ -211,11 +204,7 @@ const Attendance: React.FC = () => {
               <Input
                 disabled
                 placeholder="Chưa chọn vị trí trên bản đồ"
-                value={
-                  selectedLocation
-                    ? `Point ID: ${selectedLocation.diaDiemId}`
-                    : ""
-                }
+                value={selectedLocation ? `Point ID: ${selectedLocation}` : ""}
               />
             </div>
             {/* Button */}
