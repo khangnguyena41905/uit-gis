@@ -21,7 +21,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -32,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 export default function CardManagement() {
   const [cards, setCards] = useState<ICard[]>([]);
@@ -164,7 +164,7 @@ export default function CardManagement() {
             disabled={pageIndex === 1}
             onClick={() => setPageIndex((p) => Math.max(1, p - 1))}
           >
-            ← Trước
+            <ArrowLeft /> Trước
           </Button>
 
           <span className="text-sm text-muted-foreground">
@@ -176,7 +176,7 @@ export default function CardManagement() {
             size="sm"
             onClick={() => setPageIndex((p) => p + 1)}
           >
-            Sau →
+            Sau <ArrowRight />
           </Button>
         </div>
       </CardContent>

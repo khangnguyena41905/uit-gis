@@ -59,16 +59,12 @@ const EmployeeManagementPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  // Tính năng Khóa/Mở khóa
   const handleToggleActive = (employee: IEmployee) => {
     console.log(
       `Đang ${employee.isActive ? "Khóa" : "Mở khóa"} tài khoản ID: ${employee.id}`,
     );
-    // Logic gọi API update isActive (sử dụng unitOfWork.employeeService)
-    // Sau khi thành công: fetchEmployees();
   };
 
-  // Tính năng Reset Password
   const handleResetPassword = (employee: IEmployee) => {
     if (
       window.confirm(
@@ -76,16 +72,13 @@ const EmployeeManagementPage: React.FC = () => {
       )
     ) {
       console.log(`Đang Reset mật khẩu cho ID: ${employee.id}`);
-      // Logic gọi API Reset Password
     }
   };
 
-  // Tính toán dữ liệu hiển thị cho phân trang (Frontend Paging)
   const totalPages = Math.ceil(employees.length / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const currentEmployees = employees.slice(startIndex, startIndex + pageSize);
 
-  // --- JSX RENDER ---
   return (
     <div className="space-y-6">
       {/* HEADER & BUTTON ADD */}
@@ -93,12 +86,10 @@ const EmployeeManagementPage: React.FC = () => {
         <h1 className="text-3xl font-bold text-gray-800">
           👤 Quản lý Tài khoản Nhân viên
         </h1>
-        {/* Sử dụng Button Shadcn */}
         <Button onClick={handleAdd}>+ Thêm Nhân viên</Button>
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-xl overflow-x-auto">
-        {/* 3. SỬ DỤNG SHADCN TABLE */}
         <Table className="min-w-full">
           <TableHeader className="bg-gray-50">
             <TableRow>
@@ -121,16 +112,14 @@ const EmployeeManagementPage: React.FC = () => {
                 <TableCell>{emp.email}</TableCell>
                 <TableCell>{emp.department?.tenPB || "N/A"}</TableCell>
                 <TableCell>
-                  {/* position not defined on IEmployee */}N/A
+                  N/A
                 </TableCell>
                 <TableCell>
-                  {/* Sử dụng Badge Shadcn */}
                   <Badge variant={emp.isActive ? "default" : "secondary"}>
                     {emp.isActive ? "Kích hoạt" : "Đã Khóa"}
                   </Badge>
                 </TableCell>
                 <TableCell className="flex justify-end space-x-2">
-                  {/* Button Sửa */}
                   <Button
                     variant="outline"
                     size="sm"
@@ -138,7 +127,6 @@ const EmployeeManagementPage: React.FC = () => {
                   >
                     Sửa
                   </Button>
-                  {/* Button Khóa/Mở khóa */}
                   <Button
                     variant={emp.isActive ? "destructive" : "secondary"}
                     size="sm"
@@ -146,7 +134,6 @@ const EmployeeManagementPage: React.FC = () => {
                   >
                     {emp.isActive ? "Khóa TK" : "Mở khóa"}
                   </Button>
-                  {/* Button Reset Password */}
                   <Button
                     variant="ghost"
                     size="sm"
@@ -160,7 +147,6 @@ const EmployeeManagementPage: React.FC = () => {
           </TableBody>
         </Table>
 
-        {/* PHÂN TRANG */}
         {employees.length > pageSize && (
           <div className="flex justify-between items-center pt-4">
             <p className="text-sm text-gray-500">
@@ -190,9 +176,7 @@ const EmployeeManagementPage: React.FC = () => {
         )}
       </div>
 
-      {/* 4. SHADCN DIALOG (MODAL) CHO THÊM/SỬA */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        {/* DialogTrigger không cần vì đã có button Add/Edit riêng */}
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>

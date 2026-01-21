@@ -7,15 +7,6 @@ export interface CheckinLocation {
   type?: string; // Loại chấm công (VD: "Check-in", "Check-out", "Cà phê")
 }
 
-// export interface Employee {
-//   id: number;
-//   name: string;
-//   department: string;
-//   position: string;
-//   totalHours: number;
-//   missedDays: number;
-// }
-
 export interface TimekeepingSummary {
   employeeId: number;
   name: string;

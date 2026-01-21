@@ -19,9 +19,9 @@ import {
 import type { IEmployee } from "~/lib/interfaces/employee.interface";
 import { isValidCheckin } from "~/lib/utils";
 import { useMetadataStore } from "~/lib/stores/useMetadataStore";
+import { useLoadingStore } from "~/lib/stores/useLoadingStore";
 
 const TimekeepingDetailPage: React.FC = () => {
-  // Lấy params (id), đảm bảo hợp lệ
   const { id } = useParams<{ id: string }>();
   const { selectedMonth } = useTimeKeepingStore();
   const departments = useMetadataStore((state) => state.departments);
@@ -34,7 +34,7 @@ const TimekeepingDetailPage: React.FC = () => {
   const [polygons, setPolygons] = useState<PolygonFeature[] | undefined>(
     undefined,
   );
-  const [loading, setLoading] = useState<boolean>(true);
+  const { show, hide } = useLoadingStore();
   const [date, setDate] = useState<Date | undefined>(selectedMonth);
 
   useEffect(() => {
@@ -45,12 +45,10 @@ const TimekeepingDetailPage: React.FC = () => {
   }, [id, date]);
 
   const fetchData = async () => {
-    setLoading(true);
+    show();
     try {
-      // Employee details
       if (id) {
         try {
-          // Subareas / polygons to draw
           const subareaResp = await unitOfWork.subareaService.getPagedSubareas({
             pageIndex: 1,
             pageSize: 1000,
@@ -78,12 +76,10 @@ const TimekeepingDetailPage: React.FC = () => {
           const emp = await unitOfWork.employeeService.getById(id);
           setEmployeeDetails(emp);
         } catch (err) {
-          // silently continue with null employee
           console.warn("Failed to fetch employee", err);
         }
       }
 
-      // Attendances for the day
       if (!date) return;
       const fromDate = new Date(date);
       fromDate.setHours(0, 0, 0, 0);
@@ -95,7 +91,6 @@ const TimekeepingDetailPage: React.FC = () => {
         fromDate,
         toDate,
       );
-      console.log("attends: ", attends);
 
       const checkins: CheckinLocation[] = (attends ?? [])
         .map((a) => {
@@ -106,7 +101,6 @@ const TimekeepingDetailPage: React.FC = () => {
             lon: Number(a.diem.x),
             pointId: a.diaDiemId,
             time: a.gio,
-            // type: a.location ?? "",
           } as CheckinLocation;
         })
         .filter(Boolean) as CheckinLocation[];
@@ -115,16 +109,12 @@ const TimekeepingDetailPage: React.FC = () => {
     } catch (err) {
       console.error("Failed to load timekeeping detail", err);
     }
-    setLoading(false);
+    hide();
   };
 
   const getCheckinPoint = useCallback(() => {
     return checkinLocations.map((loc) => {
       const valid = isValidCheckin(loc, employeeDetails, polygons);
-      console.log("loc: ", loc);
-      console.log("employeeDetails: ", employeeDetails);
-      console.log("polygons: ", polygons);
-      console.log("valid: ", valid);
 
       return {
         lat: loc.lat,
@@ -183,59 +173,55 @@ const TimekeepingDetailPage: React.FC = () => {
         </Popover>
       </div>
 
-      {loading ? (
-        <p>Đang tải chi tiết...</p>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow h-auto overflow-y-auto">
-            <h3 className="text-xl font-semibold mb-4 border-b pb-2">
-              Thông tin Chung
-            </h3>
-            <p>
-              ID: <strong>{employeeDetails?.maNV ?? id}</strong>
-            </p>
-            <p>
-              Phòng ban:
-              <strong>
-                {employeeDetails?.phongBanId
-                  ? getDepartmentName(employeeDetails?.phongBanId)?.tenPB
-                  : ""}
-              </strong>
-            </p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow h-auto overflow-y-auto">
+          <h3 className="text-xl font-semibold mb-4 border-b pb-2">
+            Thông tin Chung
+          </h3>
+          <p>
+            ID: <strong>{employeeDetails?.maNV ?? id}</strong>
+          </p>
+          <p>
+            Phòng ban:
+            <strong>
+              {employeeDetails?.phongBanId
+                ? getDepartmentName(employeeDetails?.phongBanId)?.tenPB
+                : ""}
+            </strong>
+          </p>
 
-            <h3 className="text-xl font-semibold mt-6 mb-4 border-b pb-2">
-              Dữ liệu Chấm công ({date?.toLocaleDateString()})
-            </h3>
-            <ul className="list-none space-y-2">
-              {checkinLocations.map((loc) => (
-                <li key={loc.id} className="p-2 bg-gray-50 rounded">
-                  <p className="font-medium">
-                    {new Date(loc.time).toLocaleTimeString() || loc.time} -{" "}
-                    <strong>{loc.type ?? ""}</strong>
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Tọa độ: {loc.lat}, {loc.lon}
-                  </p>
-                </li>
-              ))}
-              {checkinLocations.length === 0 && (
-                <li>Không có dữ liệu chấm công trong ngày</li>
-              )}
-            </ul>
-          </div>
-
-          <div className="lg:col-span-2 bg-white rounded-lg shadow p-0 h-[600px]">
-            <ArcGISMap
-              area={{
-                center: [getArea().x ?? 0, getArea().y ?? 0],
-                zoom: 18,
-              }}
-              points={getCheckinPoint()}
-              polygons={polygons}
-            />
-          </div>
+          <h3 className="text-xl font-semibold mt-6 mb-4 border-b pb-2">
+            Dữ liệu Chấm công ({date?.toLocaleDateString()})
+          </h3>
+          <ul className="list-none space-y-2">
+            {checkinLocations.map((loc) => (
+              <li key={loc.id} className="p-2 bg-gray-50 rounded">
+                <p className="font-medium">
+                  {new Date(loc.time).toLocaleTimeString() || loc.time} -{" "}
+                  <strong>{loc.type ?? ""}</strong>
+                </p>
+                <p className="text-sm text-gray-500">
+                  Tọa độ: {loc.lat}, {loc.lon}
+                </p>
+              </li>
+            ))}
+            {checkinLocations.length === 0 && (
+              <li>Không có dữ liệu chấm công trong ngày</li>
+            )}
+          </ul>
         </div>
-      )}
+
+        <div className="lg:col-span-2 bg-white rounded-lg shadow p-0 h-[600px]">
+          <ArcGISMap
+            area={{
+              center: [getArea().x ?? 0, getArea().y ?? 0],
+              zoom: 18,
+            }}
+            points={getCheckinPoint()}
+            polygons={polygons}
+          />
+        </div>
+      </div>
     </div>
   );
 };

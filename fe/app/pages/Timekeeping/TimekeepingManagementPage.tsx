@@ -81,7 +81,7 @@ const TimekeepingList: React.FC<{
 const ActionButton: React.FC<{ employeeId: string }> = ({ employeeId }) => {
   const navigate = useNavigate();
   return (
-    <Button size="sm" onClick={() => navigate(`/timekeeping/${employeeId}`)}>
+    <Button size="sm" onClick={() => navigate(`/admin/timekeeping/${employeeId}`)}>
       Chi tiết
     </Button>
   );

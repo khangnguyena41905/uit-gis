@@ -1,5 +1,4 @@
 import { AuthService, type IAuthService } from "../auth-service";
-import { UserService, type IUserService } from "../user-service";
 import { EmployeeService, type IEmployeeService } from "../employee-service";
 import {
   DepartmentService,
@@ -13,7 +12,6 @@ import {
 } from "../attendance-service";
 import { PointService, type IPointService } from "../point-service";
 import { SubareaService, type ISubareaService } from "../subarea-service";
-import { AreaService, type IAreaService } from "../area-service";
 import {
   AssignmentService,
   type IAssignmentService,
@@ -21,7 +19,6 @@ import {
 
 interface IUnitOfWork {
   authService: IAuthService;
-  userService: IUserService;
   employeeService: IEmployeeService;
   departmentService: IDepartmentService;
   shiftService: IShiftService;
@@ -29,7 +26,6 @@ interface IUnitOfWork {
   attendanceService: IAttendanceService;
   pointService: IPointService;
   subareaService: ISubareaService;
-  areaService: IAreaService;
   assignmentService: IAssignmentService;
 }
 
@@ -42,11 +38,6 @@ class UnitOfWork implements IUnitOfWork {
   private _authService: IAuthService = new AuthService();
   public get authService(): IAuthService {
     return (this._authService = this._authService ?? new AuthService());
-  }
-
-  private _userService: IUserService = new UserService();
-  public get userService(): IUserService {
-    return (this._userService = this._userService ?? new UserService());
   }
 
   private _employeeService: IEmployeeService = new EmployeeService();
@@ -86,11 +77,6 @@ class UnitOfWork implements IUnitOfWork {
   public get subareaService(): ISubareaService {
     return (this._subareaService =
       this._subareaService ?? new SubareaService());
-  }
-
-  private _areaService: IAreaService = new AreaService();
-  public get areaService(): IAreaService {
-    return (this._areaService = this._areaService ?? new AreaService());
   }
 
   private _assignmentService: IAssignmentService = new AssignmentService();
